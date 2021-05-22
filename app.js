@@ -48,10 +48,13 @@ mysqlConnection.query("SELECT * FROM web_institute_detail WHERE inst_hash=?", id
     console.log(err);
   }else{
     if (rows.length > 0){
+      var img="imgURL";
       rows.forEach(function(row){
         test.title.push(row.title);
         test.content.push(row.content);
       })
+
+      response[img]="https://careerliftprod.s3.amazonaws.com/mcllearnoadminimage/";
       for( var i=0;i<test.title.length;i++){
         response[test.title[i]]=test.content[i];
       }
