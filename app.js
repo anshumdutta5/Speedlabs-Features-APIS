@@ -134,6 +134,63 @@ app.post("/Get_notification1", function(req, res) {
 });
 
 
+//**********************************************************************Notifications*****************************************************************
+
+app.post("/Get_package_detail", function(req, res) {
+
+  function NewRow(course_slug, course_name, course_start_date, course_duration, course_price) {
+    this.course_slug = course_slug;
+    this.course_name = course_name;
+    this.course_start_date = course_start_date;
+    this.course_duration = course_duration;
+    this.course_price = course_price;
+  }
+
+  var newRows = [];
+  var newRowsobj = {
+    response: newRows,
+    status: ""
+  }
+  var response = {};
+  var id = req.body.id;
+  var n = req.body.limit;
+
+
+  mysqlConnection.query("SELECT * FROM web_course_package wcp INNER JOIN web_course wc ON wcp.course_id=wc.course_id WHERE inst_hash =? ", id, function(err, rows) {
+    if (err) {
+      console.log(err);
+      res.send(err);
+    } else {
+      if (n == 0) {
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else if (rows.length > 0 && n > 0) {
+        rows.every(function(row) {
+          //console.log(row.course_price);
+          var newRow = new NewRow(row.course_slug, row.course_name, row.course_start_date, row.course_duration, row.course_price);
+          //console.log(newRow);
+          newRows.push(newRow);
+          n--;
+          if (n === 0) {
+            return false;
+          } else {
+            return true;
+          }
+
+        })
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else {
+        newRowsobj.status = "failed";
+        res.send(newRowsobj);
+      }
+    }
+
+
+  })
+
+});
+
 
 
 
