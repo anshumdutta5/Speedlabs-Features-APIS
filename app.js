@@ -9,6 +9,7 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
+//*************************************************************Setting Up Mysql Connection*************************************************************
 
 var mysqlConnection = mysql.createConnection({
   host: process.env.HOST,
@@ -192,7 +193,64 @@ app.post("/Get_package_detail", function(req, res) {
 });
 
 
+//******************************************************************Get PDF***********************************************************************
 
+app.post("/Get_pdf_new1", function(req, res) {
+
+  function NewRow(title, sub_title, pdf_name, url) {
+    this.title = title;
+    this.sub_title = sub_title;
+    this.pdf_name = pdf_name;
+    this.url = url;
+  }
+
+
+  var newRows = [];
+  var newRowsobj = {
+    response: newRows,
+    status: ""
+  }
+  var response = {};
+  var id = req.body.id;
+  var n = req.body.limit;
+
+
+  mysqlConnection.query("SELECT * FROM web_downloads WHERE inst_hash=?", id, function(err, rows) {
+
+
+    if (err) {
+      console.log(err);
+      res.send(err);
+    } else {
+      if (n == 0) {
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else if (rows.length > 0 && n > 0) {
+        rows.every(function(row) {
+          var url = "https://careerliftprod.s3.amazonaws.com/mcllearnoadminpdf/" + row.pdf_name;
+          var newRow = new NewRow(row.title, row.sub_title, row.pdf_name, url);
+          newRows.push(newRow);
+          n--;
+          if (n === 0) {
+            return false;
+          } else {
+            return true;
+          }
+        })
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else {
+        newRowsobj.status = "failed";
+        res.send(newRowsobj);
+      }
+    }
+
+  })
+
+});
+
+
+//***************************************************************Listening on PORT******************************************************************
 
 app.listen(process.env.PORT, function() {
   console.log("Server started on port 3000");
