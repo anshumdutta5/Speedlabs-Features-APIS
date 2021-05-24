@@ -342,6 +342,68 @@ app.post("/Get_video1", function(req, res) {
 });
 
 
+//****************************************************************Get Faculty***********************************************************************
+
+
+app.post("/Get_faculty", function(req, res) {
+
+  function NewRow(faculty_name, faculty_image, faculty_detail, url) {
+    this.faculty_name = faculty_name;
+    this.faculty_image = faculty_image;
+    this.faculty_detail = faculty_detail;
+    this.url = url;
+  }
+
+  var newRows = [];
+  var newRowsobj = {
+    response: newRows,
+    status: ""
+  }
+  var response = {};
+  var id = req.body.id;
+  var n = req.body.limit;
+
+  mysqlConnection.query("SELECT * FROM web_faculty WHERE inst_hash =? ORDER BY faculty_id DESC", id, function(err, rows) {
+    if (err) {
+      console.log(err);
+      res.send(err);
+    } else {
+      if (n == 0) {
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else if (rows.length > 0 && n > 0) {
+        rows.every(function(row) {
+          var url = "https://careerliftprod.s3.amazonaws.com/mcllearnoadminfaculty/" + row.faculty_image;
+          var newRow = new NewRow(row.faculty_name, row.faculty_image, row.faculty_detail, url);
+          newRows.push(newRow);
+          n--;
+          if (n === 0) {
+            return false;
+          } else {
+            return true;
+          }
+        })
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else {
+        var obj = {
+          faculty_name: "No faculty"
+        }
+        console.log(obj);
+        var newRowsobj1 = {
+          response: obj,
+          status: "failed"
+        }
+        res.send(newRowsobj1);
+      }
+    }
+
+
+  })
+
+});
+
+
 
 //***************************************************************Listening on PORT******************************************************************
 
