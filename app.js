@@ -3,6 +3,15 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 
+var moment = require('moment');
+
+var dateFormat = require("dateformat");
+const nodemailer = require('nodemailer');
+var multer = require('multer');
+var upload = multer({
+  dest: 'uploads/'
+});
+
 require('dotenv').config()
 
 app.use(bodyParser.urlencoded({
@@ -26,6 +35,51 @@ mysqlConnection.connect(function(err) {
     console.log("DB connection failed \n Error : " + JSON.stringify(err, undefined, 2));
   }
 })
+
+
+//**************************************************************Web Domain Details*******************************************************************
+
+
+app.post("/web_hash", function(req, res) {
+
+  function NewRow(inst_hash, domain_expiry_date) {
+    this.inst_hash = inst_hash;
+    this.expiry_date = domain_expiry_date;
+  }
+
+  var newRows = [];
+  var newRowsobj = {
+    response: newRows,
+    status: ""
+  }
+  var response = {};
+  var name = req.body.domain_name;
+
+  mysqlConnection.query("SELECT * FROM web_domain_details WHERE domain_name=?", name, function(err, rows) {
+    if (err) {
+      console.log(err);
+      res.send(err);
+    } else {
+      if (rows.length > 0) {
+        rows.forEach(function(row) {
+          var d = new Date(row.domain_expiry_date);
+          var day = moment(d).format();
+
+          var newRow = new NewRow(row.inst_hash,day.toString().slice(0, 10) );
+          newRows.push(newRow);
+        })
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else {
+        newRowsobj.status = "failed"
+        res.send(newRowsobj);
+      }
+    }
+
+  })
+
+});
+
 
 
 
@@ -454,7 +508,6 @@ app.post("/Get_image1", function(req, res) {
   })
 
 });
-
 
 
 
