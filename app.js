@@ -96,7 +96,7 @@ app.post("/Get_notification1", function(req, res) {
   var id = req.body.id;
   var date;
 
-  mysqlConnection.query("SELECT * FROM web_notification WHERE inst_hash=?", id, function(err, rows) {
+  mysqlConnection.query("SELECT * FROM web_notification WHERE inst_hash=? ORDER BY notify_id DESC", id, function(err, rows) {
     if (!err) {
       //console.log(rows.length);
       if (rows.length > 0) {
@@ -135,7 +135,7 @@ app.post("/Get_notification1", function(req, res) {
 });
 
 
-//**********************************************************************Notifications*****************************************************************
+//******************************************************************Get Package Details**************************************************************
 
 app.post("/Get_package_detail", function(req, res) {
 
@@ -157,7 +157,7 @@ app.post("/Get_package_detail", function(req, res) {
   var n = req.body.limit;
 
 
-  mysqlConnection.query("SELECT * FROM web_course_package wcp INNER JOIN web_course wc ON wcp.course_id=wc.course_id WHERE inst_hash =? ", id, function(err, rows) {
+  mysqlConnection.query("SELECT * FROM web_course_package wcp INNER JOIN web_course wc ON wcp.course_id=wc.course_id WHERE inst_hash =? ORDER BY package_id DESC", id, function(err, rows) {
     if (err) {
       console.log(err);
       res.send(err);
@@ -215,7 +215,7 @@ app.post("/Get_pdf_new1", function(req, res) {
   var n = req.body.limit;
 
 
-  mysqlConnection.query("SELECT * FROM web_downloads WHERE inst_hash=?", id, function(err, rows) {
+  mysqlConnection.query("SELECT * FROM web_downloads WHERE inst_hash=? ORDER BY pdf_id DESC", id, function(err, rows) {
 
 
     if (err) {
@@ -268,7 +268,7 @@ app.post("/Get_slider", function(req, res) {
   var response = {};
   var id = req.body.id;
 
-  mysqlConnection.query("SELECT * FROM web_slider WHERE inst_hash=?", id, function(err, rows) {
+  mysqlConnection.query("SELECT * FROM web_slider WHERE inst_hash=? ORDER BY slider_order_no ASC", id, function(err, rows) {
     if (err) {
       console.log(err);
       res.send(err);
@@ -310,7 +310,7 @@ app.post("/Get_video1", function(req, res) {
   var id = req.body.id;
   var n = req.body.limit;
 
-  mysqlConnection.query("SELECT * FROM web_video WHERE inst_hash =? ", id, function(err, rows) {
+  mysqlConnection.query("SELECT * FROM web_video WHERE inst_hash =? ORDER BY video_id DESC", id, function(err, rows) {
     if (err) {
       console.log(err);
       res.send(err);
@@ -402,6 +402,59 @@ app.post("/Get_faculty", function(req, res) {
   })
 
 });
+
+
+//******************************************************************Get Image**********************************************************************
+
+app.post("/Get_image1", function(req, res) {
+
+  function NewRow(image, image_title, url) {
+    this.image = image;
+    this.image_title = image_title;
+    this.url = url;
+  }
+
+  var newRows = [];
+  var newRowsobj = {
+    response: newRows,
+    status: ""
+  }
+  var response = {};
+  var id = req.body.id;
+  var n = req.body.limit;
+
+  mysqlConnection.query("SELECT * FROM web_image WHERE inst_hash =? ORDER BY image_id DESC", id, function(err, rows) {
+    if (err) {
+      console.log(err);
+      res.send(err);
+    } else {
+      if (n == 0) {
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else if (rows.length > 0 && n > 0) {
+        rows.every(function(row) {
+          var url = "https://careerliftprod.s3.amazonaws.com/mcllearnoadminimage/" + row.image;
+          var newRow = new NewRow(row.image, row.image_title, url);
+          newRows.push(newRow);
+          n--;
+          if (n === 0) {
+            return false;
+          } else {
+            return true;
+          }
+        })
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else {
+        newRowsobj.status = "failed";
+        res.send(newRowsobj);
+      }
+    }
+
+  })
+
+});
+
 
 
 
