@@ -250,6 +250,49 @@ app.post("/Get_pdf_new1", function(req, res) {
 });
 
 
+//*******************************************************************Get Slider*******************************************************************
+
+
+app.post("/Get_slider", function(req, res) {
+  function NewRow(img, text, url) {
+    this.slider_image = img;
+    this.slider_text = text;
+    this.img_url = url;
+  }
+
+  var newRows = [];
+  var newRowsobj = {
+    response: newRows,
+    status: ""
+  }
+  var response = {};
+  var id = req.body.id;
+
+  mysqlConnection.query("SELECT * FROM web_slider WHERE inst_hash=?", id, function(err, rows) {
+    if (err) {
+      console.log(err);
+      res.send(err);
+    } else {
+      if (rows.length > 0) {
+        rows.forEach(function(row) {
+          var url = "https://careerliftprod.s3.amazonaws.com/mcllearnoadminslider/" + row.slider_image;
+          var newRow = new NewRow(row.slider_image, row.slider_text, url);
+          newRows.push(newRow);
+        })
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else {
+        newRowsobj.status = "failed"
+        res.send(newRowsobj);
+      }
+    }
+
+  })
+
+});
+
+
+
 //***************************************************************Listening on PORT******************************************************************
 
 app.listen(process.env.PORT, function() {
