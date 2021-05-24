@@ -30,7 +30,7 @@ mysqlConnection.connect(function(err) {
 
 
 
-app.post("/", function(req, res) {
+app.post("/Get_institute_details", function(req, res) {
 
   var test={
     title:[],
@@ -46,6 +46,8 @@ var result={
 mysqlConnection.query("SELECT * FROM web_institute_detail WHERE inst_hash=?", id, function(err, rows){
   if(err){
     console.log(err);
+    result.status="failed";
+    res.send(result);
   }else{
     if (rows.length > 0){
       var img="imgURL";
@@ -61,6 +63,9 @@ mysqlConnection.query("SELECT * FROM web_institute_detail WHERE inst_hash=?", id
       result.response=response;
       result.status="Success";
       res.send(result);
+  }else{
+    result.status="failed";
+    res.send(result);
   }
 
 }
