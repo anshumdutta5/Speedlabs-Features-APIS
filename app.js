@@ -291,6 +291,56 @@ app.post("/Get_slider", function(req, res) {
 
 });
 
+//*******************************************************************Get Video************************************************************************
+
+app.post("/Get_video1", function(req, res) {
+
+  function NewRow(video_id, desc, video_title) {
+    this.video_id = video_id;
+    this.desc = desc;
+    this.video_title = video_title;
+  }
+
+  var newRows = [];
+  var newRowsobj = {
+    response: newRows,
+    status: ""
+  }
+  var response = {};
+  var id = req.body.id;
+  var n = req.body.limit;
+
+  mysqlConnection.query("SELECT * FROM web_video WHERE inst_hash =? ", id, function(err, rows) {
+    if (err) {
+      console.log(err);
+      res.send(err);
+    } else {
+      if (n == 0) {
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else if (rows.length > 0 && n > 0) {
+        rows.every(function(row) {
+          var newRow = new NewRow(row.video_id, row.video_description, row.video_title);
+          newRows.push(newRow);
+          n--;
+          if (n === 0) {
+            return false;
+          } else {
+            return true;
+          }
+        })
+        newRowsobj.status = "success";
+        res.send(newRowsobj);
+      } else {
+        newRowsobj.status = "failed";
+        res.send(newRowsobj);
+      }
+    }
+
+  })
+
+});
+
 
 
 //***************************************************************Listening on PORT******************************************************************
