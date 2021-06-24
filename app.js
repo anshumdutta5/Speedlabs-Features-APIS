@@ -46,65 +46,62 @@ app.get("/", function(req, res) {
 //*********************************Dynamic Button************************************************
 
 
-
-app.post("/Get_dynamic_button", function(req,res){
-    var id = req.body.id;
-    var instKey = req.body.key;
-    if (instKey && key === md5(instKey)) {
-      pool.getConnection(function(err, conn){
-        if(err){
-          console.log(err);
-          res.send(err);
-        }else{
-          conn.query("SELECT * FROM web_institute_detail WHERE inst_hash=?", id, function(err, rows){
-            if(err){
-              console.log(err);
-              res.send(err);
-            }else{
-              var x="";
-              if (rows.length > 0) {
-                rows.forEach(function(row) {
-                  if(row.title === "dynamic_tab_name")
-                  x = row.content;
-                })
-            }
-            if(x===""){
-              var result = {
-                response: "This institute does not have dynamic button",
-                status: "failed"
-              };
-              res.send(result);
-            }else{
-              mysqlConnection.query("SELECT title,url FROM dynamic_menu_bar WHERE dynamic_tab_name=?",x,function(err,rows){
-                if(err){
-                  console.log(err);
-                  res.send(err);
-                }else{
-
-                  var obj = {
-                    tab_name:x
-                  }
-                  // rows.unshift(obj);
-                  var result = {
-                    tab_name:x,
-                    response: rows,
-                    status: "success"
-                  };
-                  res.send(result);
-                }
+app.post("/Get_dynamic_button",function(req,res){
+  var id = req.body.id;
+  var instKey = req.body.key;
+  if (instKey && key === md5(instKey)){
+    pool.getConnection(function(err,conn){
+      if(err){
+        console.log(err);
+        res.send(err);
+      }else{
+        conn.query("SELECT * FROM web_institute_detail WHERE inst_hash=?", id, function(err, rows){
+          if(err){
+            console.log(err);
+            res.send(err)
+          }else{
+            var x="";
+            if (rows.length > 0) {
+              rows.forEach(function(row) {
+                if(row.title === "dynamic_tab_name")
+                x = row.content;
               })
-            }
           }
-        })
-        pool.releaseConnection(conn);
+          if(x===""){
+            var result = {
+              response: "This institute does not have dynamic button",
+              status: "failed"
+            };
+            res.send(result);
+          }else{
+            conn.query("SELECT title,url FROM dynamic_menu_bar WHERE dynamic_tab_name=?",x,function(err,rows){
+              if(err){
+                console.log(err);
+                res.send(err);
+              }else{
+
+                var obj = {
+                  tab_name:x
+                }
+                // rows.unshift(obj);
+                var result = {
+                  tab_name:x,
+                  response: rows,
+                  status: "success"
+                };
+                res.send(result);
+              }
+            })
+          }
         }
       })
-
-    }else{
-      res.send(`{"response":"unauthorized","status":"Failed"}`);
-    }
-
-});
+        pool.releaseConnection(conn);
+      }
+    })
+  }else{
+    res.send(`{"response":"unauthorized","status":"Failed"}`);
+  }
+})
 
 
 //*********************************Students Achievements************************************************
